@@ -1,12 +1,10 @@
 import { useEffect, useState } from 'react';
-import reactLogo from './assets/react.svg';
-import viteLogo from '/vite.svg';
-import './App.css';
-import { Button } from 'react-bootstrap';
-import { Note } from './models/note';
+
+import { Note as NoteModel } from './models/note';
+import Note from './components/Note';
 
 function App() {
-  const [notes, setNotes] = useState<Note[]>([]);
+  const [notes, setNotes] = useState<NoteModel[]>([]);
 
   useEffect(() => {
     async function loadNotes() {
@@ -14,18 +12,23 @@ function App() {
         const response = await fetch('/api/notes', {
           method: 'GET',
         });
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const initialNotes: Note[] = await response.json();
+        const initialNotes = (await response.json()) as NoteModel[];
         setNotes(initialNotes);
       } catch (err) {
         console.error(err);
         alert(err);
       }
     }
-    void loadNotes();
+    loadNotes().catch((err) => console.error(err));
   }, []);
 
-  return <div>{JSON.stringify(notes)}</div>;
+  return (
+    <div>
+      {notes.map((note) => (
+        <Note key={note._id} note={note} />
+      ))}
+    </div>
+  );
 }
 
 export default App;
