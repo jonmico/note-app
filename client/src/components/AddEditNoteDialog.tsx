@@ -11,6 +11,7 @@ interface AddEditNoteDialogProps {
 }
 
 export default function AddEditNoteDialog({
+  noteToEdit,
   onDismiss,
   onNoteSaved,
 }: AddEditNoteDialogProps) {
@@ -18,11 +19,22 @@ export default function AddEditNoteDialog({
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<NoteInput>();
+  } = useForm<NoteInput>({
+    defaultValues: {
+      title: noteToEdit?.title || '',
+      text: noteToEdit?.text || '',
+    },
+  });
 
   async function onSubmit(input: NoteInput) {
     try {
-      const noteResponse = await NotesApi.createNote(input);
+      let noteResponse: Note;
+      if (noteToEdit) {
+        noteResponse = await NotesApi.updateNote(noteToEdit._id, input);
+      } else {
+        noteResponse = await NotesApi.createNote(input);
+      }
+
       onNoteSaved(noteResponse);
     } catch (err) {
       console.error(err);
@@ -32,10 +44,10 @@ export default function AddEditNoteDialog({
   return (
     <Modal show onHide={onDismiss}>
       <Modal.Header closeButton>
-        <Modal.Title>Add Note</Modal.Title>
+        <Modal.Title>{noteToEdit ? 'Edit note' : 'Create note'}</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <Form id='addNoteForm' onSubmit={handleSubmit(onSubmit)}>
+        <Form id='addEditNoteForm' onSubmit={handleSubmit(onSubmit)}>
           <Form.Group className='mb-3'>
             <Form.Label>Title</Form.Label>
             <Form.Control
@@ -60,7 +72,7 @@ export default function AddEditNoteDialog({
         </Form>
       </Modal.Body>
       <Modal.Footer>
-        <Button type='submit' form='addNoteForm' disabled={isSubmitting}>
+        <Button type='submit' form='addEditNoteForm' disabled={isSubmitting}>
           Save Note
         </Button>
       </Modal.Footer>

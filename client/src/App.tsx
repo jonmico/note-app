@@ -11,6 +11,7 @@ import { FaPlus } from 'react-icons/fa';
 function App() {
   const [notes, setNotes] = useState<NoteModel[]>([]);
   const [showAddNoteDialog, setShowAddNoteDialog] = useState(false);
+  const [noteToEdit, setNoteToEdit] = useState<NoteModel | null>(null);
 
   useEffect(() => {
     async function loadNotes() {
@@ -50,6 +51,7 @@ function App() {
             <Note
               note={note}
               className={styles.note}
+              onNoteClicked={setNoteToEdit}
               // eslint-disable-next-line @typescript-eslint/no-misused-promises
               onDeleteNoteClicked={deleteNote}
             />
@@ -62,6 +64,20 @@ function App() {
           onNoteSaved={(newNote) => {
             setNotes((currNotes) => [...currNotes, newNote]);
             setShowAddNoteDialog(false);
+          }}
+        />
+      )}
+      {noteToEdit && (
+        <AddEditNoteDialog
+          noteToEdit={noteToEdit}
+          onDismiss={() => setNoteToEdit(null)}
+          onNoteSaved={(updatedNote) => {
+            setNotes((currNotes) =>
+              currNotes.map((note) =>
+                updatedNote._id === note._id ? updatedNote : note
+              )
+            );
+            setNoteToEdit(null);
           }}
         />
       )}
